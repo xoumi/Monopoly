@@ -33,13 +33,17 @@ export default aucAnim =
     
     
 
-  removeBid: (player, bids) ->
+  removeBid: (player, bids, auc) ->
     gsap.to bids,
       y: "+100%", stagger: .1, duration: 1, ease: 'power4.inOut'
 
     gsap.to player,
       height: '-=250',
       stagger: .1, delay: .2, duration: 1, ease: 'power4.inOut',
+
+    gsap.to auc,
+      height: '-=100',
+      delay: .5, duration: 1, ease: 'power4.inOut'
       
   getReveal : (el, width, height ) ->
     cr = el.getBoundingClientRect()
