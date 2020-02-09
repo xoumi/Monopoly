@@ -6,23 +6,19 @@ transition( @leave="aucAnim.leave" )
     h1.auction-title AUCTION
 
     //End Btn
-    transition(name="closeBtn" )
-      .auction-close( v-if="isAuctioning && isOver" @click.stop="closePopup" ) END
+    transition( name="closeBtn" )
+      .auction-close( ref="close" v-show="isAuctioning && isOver" @click.stop="closePopup" ) END
 
     //Property Label, Victory Message
-    transition( name="pop" )
-      .auction-msg( v-show="isAuctioning" ) 
-
+    transition( name="auctionMsg" )
+      .auction-msg( ref="aucMsg" v-show="isAuctioning" ) 
         .auction-msg-bg( :style="countdownCSS" )
-        .auction-msg-bg.light(ref="tileBG" :style="countdownCSS")
-
-        transition(name="pop" mode="out-in")
-          .auction-msg-text(key="text" v-if="!isOver") {{tileText}}
-          .auction-msg-text(key="victory" v-else) {{victoryMessage}}
+        .auction-msg-bg.light( ref="tileBG" :style="countdownCSS" )
+        .auction-msg-text {{tileText}}
 
     //Player Cards
-    transition(@enter="cardOpen" @leave="cardMini")
-      .participant-container(v-show="isAuctioning")
+    transition( @enter="cardOpen" )
+      .participant-container( v-show="isAuctioning" )
         .participant(
           v-for="(player, i) in players"
           ref="players"
@@ -30,11 +26,11 @@ transition( @leave="aucAnim.leave" )
           :style="shadowCSS(player, i)"
         )
           .participant-final ${{bids[i]}}
-          .participant-bids(ref="bids")
-            .participant-bid(@click.self="increaseBid(i, 10)") $10
-            .participant-bid(@click.self="increaseBid(i, 50)") $50
-            .participant-bid(@click.self="increaseBid(i, 100)") $100
-          .player-head.auction-head(:style="{background: player.color}")
+          .participant-bids( ref="bids" )
+            .participant-bid( @click.self="increaseBid(i, 10)" ) $10
+            .participant-bid( @click.self="increaseBid(i, 50)" ) $50
+            .participant-bid( @click.self="increaseBid(i, 100)" ) $100
+          .player-head.auction-head( :style="{background: player.color}" )
             .player-name {{player.name}}
             .player-money {{player.money}}
 </template>
@@ -55,7 +51,7 @@ export default
         {background: '#E2ECDC', color: '#666'}
       else
         {color: '#E2ECDC', background: '#666'}
-  countdownCSS: -> {background: @tiles[@getPos()].color}
+    countdownCSS: -> {background: @tiles[@getPos()].color}
   }
   data : ->
     isAuctioning: false, 
@@ -73,19 +69,11 @@ export default
         @$emit 'dim', true
         @reveal 'forwards'
         @timerReset()
-      else
-        @$emit 'dim', false
-        @reveal 'backwards'
-      
-    isOver: (val) ->
-      if val is true
-        aucAnim.removeBid @$refs.players, @$refs.bids
 
   methods :
     cardOpen: (e, done) ->
       aucAnim.playerEnter @$refs.players, @$refs.bids, done
     cardMini: (e, done) ->
-      aucAnim.playerLeave @$refs.players, done
 
     shadowCSS: (player, i) -> 
       if i == @winner
@@ -99,7 +87,10 @@ export default
         @isAuctioning = true;
 
     closePopup: -> 
-      @isAuctioning = false
+      @$emit 'dim', false
+      aucAnim.playerLeave @$refs.players
+      @reveal 'backwards', =>
+        @isAuctioning = false
 
     getWinner: ->
       bids = Object.values(@bids)[0..3]
@@ -113,6 +104,7 @@ export default
           auction: true
 
       @isOver = true
+      aucAnim.removeBid @$refs
       @victoryMessage = "#{@players[@winner].name} bought #{@tiles[@getPos()].name} for $#{winningBid}"
 
 
@@ -133,7 +125,7 @@ export default
     aucAnim.enter @$refs.auc
     setTimeout => 
       @tileText = @tiles[@getPos()].name
-      @reveal = aucAnim.getReveal @$refs.auc, 800, 600
+      @reveal = aucAnim.getReveal @$refs, 800, 600
       @countdown = aucAnim.getCountdown @$refs.tileBG, 3
       @bidIncrease = aucAnim.getBidIncrease @bids, @bidIsChanging
     ,500
@@ -147,7 +139,10 @@ export default
   position: relative
   width: 100%
   z-index: 4
+  background: transparent
   transition: background .5s ease-in-out, color .5s ease-in-out
+  cursor: pointer
+  box-shadow: 0 0 5px rgba(100, 120, 100, .6)
 
   &-head
     border-radius: 0
@@ -155,7 +150,7 @@ export default
 
   &-close
     position: absolute
-    bottom: 20%
+    bottom: 10%
     left: 50%
     transform: translateX(-50%)
     font-size: 30pt
@@ -192,8 +187,6 @@ export default
     &::selection
       background: transparent
       color: white
-  cursor: pointer
-  box-shadow: 0 0 5px rgba(100, 120, 100, .6)
 
   &-player
 
@@ -232,11 +225,15 @@ export default
 .light
   filter: brightness(1.2)
     
-.closeBtn-enter-active
+.auctionMsg-enter-active, .closeBtn-enter-active
   transition: all .5s cubic-bezier(.7, 0,.2,1.2) 1s
-.closeBtn-leave-active
+.auctionMsg-leave-active
   transition: all .5s cubic-bezier(1,-0.2,.8,1)
+
+.auctionMsg-enter
+  transform: scaleX(0)
+
 .closeBtn-enter, .closeBtn-leave-to
-  transform: translate(-50%, 50%)
+  transform: translate(-50% 50%)
   opacity: 0
 </style>

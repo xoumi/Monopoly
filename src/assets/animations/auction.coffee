@@ -4,11 +4,11 @@ export default aucAnim =
   enter : (el) ->
     gsap.fromTo el,
       { opacity: 0, scale: .5 }
-      opacity: 1, scale: 1, duration: .5, ease: 'power4.in'
+      opacity: 1, scale: 1, duration: .5, ease: 'power4.inOut'
 
   leave : (el, done) ->
     gsap.to el,
-      opacity: 0.2, scale: 0, duration: .5, ease: 'power4.in'
+      opacity: 0.2, scale: 0, duration: .5, ease: 'power4.inOut'
       onComplete: => done
 
   playerEnter: (players, bids, done) ->
@@ -33,20 +33,23 @@ export default aucAnim =
     
     
 
-  removeBid: (player, bids, auc) ->
+  removeBid: (ref ) ->
+    {bids, auc, aucMsg, players} = ref
     gsap.to bids,
       y: "+100%", stagger: .1, duration: 1, ease: 'power4.inOut'
-
-    gsap.to player,
+    gsap.to players,
       height: '-=250',
       stagger: .1, delay: .2, duration: 1, ease: 'power4.inOut',
-
+    gsap.to aucMsg,
+      scaleX: 0, duration: 1, ease: 'power4.inOut'
     gsap.to auc,
       height: '-=100',
       delay: .5, duration: 1, ease: 'power4.inOut'
-      
-  getReveal : (el, width, height ) ->
-    cr = el.getBoundingClientRect()
+
+  getReveal : (ref, width, height ) ->
+    popup = ref.auc
+    closeBtn = ref.close
+    cr = popup.getBoundingClientRect()
     ease = 'expo.inOut'
     duration = .8
     wx = window.innerWidth
@@ -54,9 +57,9 @@ export default aucAnim =
     x = (wx - width) / 2
     y = (wy - height) / 2
 
-    return (direction) ->
+    return (direction, callback) ->
       if direction is 'forwards'
-        gsap.fromTo el,
+        gsap.fromTo popup,
           { x: cr.x - 5, y: cr.y - 5, height: cr.height, width: cr.width}
           {
             position: 'absolute',
@@ -65,11 +68,15 @@ export default aucAnim =
           }
 
       else if direction is 'backwards'
-        gsap.to el, {
+        gsap.to closeBtn,
+          y: '50%', opacity: 0, duration: duration, ease: ease
+        gsap.to popup, {
           x: cr.x - 5 , y: cr.y - 5, width: cr.width, height: cr.height,
           duration, ease, delay: .7,
-          onComplete: => gsap.set el,
-            position: 'static', x: 0, y: 0
+          onComplete: =>
+            gsap.set popup,
+              position: 'static', x: 0, y: 0
+            callback()
         }
 
   getCountdown : (el, duration = 5) =>
