@@ -92,7 +92,7 @@ export default
         type: 'buyProp'
         player:  @currentPlayer
         tile: @getPos()
-        auction: true
+        auction: false
       @buyBtn = false
       @endTurn()
 
@@ -199,6 +199,7 @@ export default
   width: 80%
   height: calc(100% - 20px)
   box-shadow: inset 0px 0px 5px 0px rgba(0,0,0,0.25)
+  overflow: auto
 </style>
 
 <style lang="scss">
