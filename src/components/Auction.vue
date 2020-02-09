@@ -17,7 +17,7 @@ transition( @leave="aucAnim.leave" )
         .auction-msg-text {{tileText}}
 
     //Player Cards
-    transition( @enter="cardOpen" )
+    transition( @enter="cardOpen" @leave="cardClose" )
       .participant-container( v-show="isAuctioning" )
         .participant(
           v-for="(player, i) in players"
@@ -47,10 +47,14 @@ export default
     ...mapState(['players', 'tiles']),
     ...mapGetters(['getPos', 'canBuy']),
     bgCSS: ->
-      if @isOver == false and
-        {background: '#E2ECDC', color: '#666'}
+      if @isAuctioning
+        color: '#E2ECDC', background: 'transparent'
       else
-        {color: '#E2ECDC', background: '#666'}
+        if @isOver
+          background: '#666', color: '#E2ECDC'
+        else
+          color: '#666', background: '#E2ECDC'
+
     countdownCSS: -> {background: @tiles[@getPos()].color}
   }
   data : ->
@@ -65,7 +69,7 @@ export default
 
   watch :
     isAuctioning: (val) -> 
-      if val is true
+      if val
         @$emit 'dim', true
         @reveal 'forwards'
         @timerReset()
@@ -73,13 +77,14 @@ export default
   methods :
     cardOpen: (e, done) ->
       aucAnim.playerEnter @$refs.players, @$refs.bids, done
-    cardMini: (e, done) ->
+    cardClose: (e, done) ->
+      aucAnim.playerLeave @$refs.players, done
 
     shadowCSS: (player, i) -> 
       if i == @winner
-        return {boxShadow: "inset 0 0 0 10px #{player.color} "}
+        boxShadow: "inset 0 0 0 10px #{player.color}"
       else
-        {boxShadow: "none"}
+        boxShadow: "none"
 
     started: ->
       @$emit('click')
@@ -88,9 +93,9 @@ export default
 
     closePopup: -> 
       @$emit 'dim', false
-      aucAnim.playerLeave @$refs.players
-      @reveal 'backwards', =>
-        @isAuctioning = false
+      # aucAnim.playerLeave @$refs.players
+      @isAuctioning = false
+      @reveal 'backwards',  => 
 
     getWinner: ->
       bids = Object.values(@bids)[0..3]
@@ -146,6 +151,7 @@ export default
 
   &-head
     border-radius: 0
+    color: #666
     z-index: 1
 
   &-close
@@ -177,6 +183,7 @@ export default
       z-index: -1
     &-text
       padding-bottom: 8px
+      color: #666
 
 
   &-title
@@ -220,6 +227,7 @@ export default
     position: absolute
     top: 50px
     left: 50%
+    color: #666
     transform: translateX(-50%)
 
 .light

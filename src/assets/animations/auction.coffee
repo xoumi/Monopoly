@@ -27,7 +27,7 @@ export default aucAnim =
     ,600
   playerLeave: (players, done) ->
     gsap.to players,
-      height: 0, stagger: .1, duration: .7,
+      height: 0, stagger: .1, duration: .4,
       ease: 'power4.in',
       onComplete: => done
     
@@ -57,7 +57,7 @@ export default aucAnim =
     x = (wx - width) / 2
     y = (wy - height) / 2
 
-    return (direction, callback) ->
+    return ( direction, callback ) ->
       if direction is 'forwards'
         gsap.fromTo popup,
           { x: cr.x - 5, y: cr.y - 5, height: cr.height, width: cr.width}
@@ -72,7 +72,7 @@ export default aucAnim =
           y: '50%', opacity: 0, duration: duration, ease: ease
         gsap.to popup, {
           x: cr.x - 5 , y: cr.y - 5, width: cr.width, height: cr.height,
-          duration, ease, delay: .7,
+          duration, ease, delay: .4,
           onComplete: =>
             gsap.set popup,
               position: 'static', x: 0, y: 0
