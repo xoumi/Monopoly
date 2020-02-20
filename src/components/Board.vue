@@ -34,12 +34,11 @@
     :style="{gridArea: `t${index}`}"
     )
 
-  .board-bg(
-    :class="{dim}"
-  )
+  .board-bg( :class="{dim}" )
 
   Auction.bottom(
-    key="auction" v-if="auctionBtn" @click="auction" @dim="setDim"
+    key="auction" v-if="auctionBtn"
+    @start="buyBtn = false" @dim="setDim" @over="auctionBtn = false; endBtn = true;"
     )
     //
       .action.button.bottom.trade(key="trade" v-if="rollBtn")
@@ -124,7 +123,6 @@ export default
 
     auction: ->
       @buyBtn = false
-      @endBtn = true
   </script>
 
 <style lang="sass">
@@ -163,7 +161,7 @@ export default
     margin: auto
     &::selection
       background: transparent
-      color: white
+      color: inherit
 
 .action
   display: flex
@@ -179,8 +177,6 @@ export default
     transform: scale(1.05)
     transition: transform .3s, filter .5s, box-shadow .3s, background 1s
   &:active
-    box-shadow: 0 0 10px rgba(100, 120, 100, .5)
-    filter: brightness(0.9)
     transform: scale(1)
     transition: transform .3s, filter .5s, box-shadow .3s
 

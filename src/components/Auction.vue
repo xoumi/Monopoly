@@ -1,6 +1,6 @@
 <template lang="pug">
-transition( @leave="aucAnim.leave" )
-  .auction(ref="auc" @click="started" :style="bgCSS")
+transition( @leave="aucAnim.btnLeave" )
+  .auction(ref="auc" @click="btnClick" :style="bgCSS")
 
     //Label
     h1.auction-title AUCTION
@@ -37,31 +37,20 @@ transition( @leave="aucAnim.leave" )
 
 <script lang="coffee">
 import {mapState, mapGetters} from 'vuex'
-import gsap from 'gsap'
-import Player from '@/components/Player.vue'
 import aucAnim from '@/assets/animations/auction.coffee'
 
 export default
-  components : { Player }
   computed : {
     ...mapState(['players', 'tiles']),
     ...mapGetters(['getPos', 'canBuy']),
-    bgCSS: ->
-      if @isAuctioning
-        color: '#E2ECDC', background: 'transparent'
-      else
-        if @isOver
-          background: '#666', color: '#E2ECDC'
-        else
-          color: '#666', background: '#E2ECDC'
-
+    bgCSS: -> if @isAuctioning
+        color: '#E2ECDC', background: 'transparent', boxShadow: 'none' 
     countdownCSS: -> {background: @tiles[@getPos()].color}
   }
   data : ->
     isAuctioning: false, 
     isOver: false,
     tileText: '',
-    victoryMessage: '',
     bids: {0: 10, 1: 0, 2: 0, 3: 0},
     bidIsChanging: [false, false, false, false],
     aucAnim: aucAnim,
@@ -71,14 +60,19 @@ export default
     isAuctioning: (val) -> 
       if val
         @$emit 'dim', true
-        @reveal 'forwards'
+        @cardAnim.show()
         @timerReset()
+      else
+        @$emit 'dim', false
+        @cardAnim.hide =>
+          @$emit 'over'
+
 
   methods :
     cardOpen: (e, done) ->
-      aucAnim.playerEnter @$refs.players, @$refs.bids, done
+      aucAnim.showPlayers @$refs.players, @$refs.bids, done
     cardClose: (e, done) ->
-      aucAnim.playerLeave @$refs.players, done
+      aucAnim.hidePlayers @$refs.players, done
 
     shadowCSS: (player, i) -> 
       if i == @winner
@@ -86,31 +80,25 @@ export default
       else
         boxShadow: "none"
 
-    started: ->
-      @$emit('click')
-      if not @isOver
-        @isAuctioning = true;
+    btnClick: ->
+      @$emit 'start'
+      @isAuctioning = true;
 
     closePopup: -> 
-      @$emit 'dim', false
-      # aucAnim.playerLeave @$refs.players
       @isAuctioning = false
-      @reveal 'backwards',  => 
 
     getWinner: ->
       bids = Object.values(@bids)[0..3]
       winningBid = Math.max ...bids
       @winner = bids.indexOf winningBid
-      if @canBuy()
-        @$store.dispatch 'buyProp',
-          player: @winner
-          tile: @getPos()
-          price: winningBid,
-          auction: true
+      @$store.dispatch 'buyProp',
+        player: @winner
+        tile: @getPos()
+        price: winningBid,
+        auction: true
 
+      aucAnim.removeControls @$refs
       @isOver = true
-      aucAnim.removeBid @$refs
-      @victoryMessage = "#{@players[@winner].name} bought #{@tiles[@getPos()].name} for $#{winningBid}"
 
 
     increaseBid: (player, amt) ->
@@ -127,10 +115,11 @@ export default
           @countdown.eventCallback 'onComplete', () => @getWinner()
 
   mounted: -> 
-    aucAnim.enter @$refs.auc
+    aucAnim.btnEnter @$refs.auc
+    #Calculate size only after it's enter transition ends
     setTimeout => 
       @tileText = @tiles[@getPos()].name
-      @reveal = aucAnim.getReveal @$refs, 800, 600
+      @cardAnim = aucAnim.setCardSize @$refs, 800, 600
       @countdown = aucAnim.getCountdown @$refs.tileBG, 3
       @bidIncrease = aucAnim.getBidIncrease @bids, @bidIsChanging
     ,500
@@ -144,7 +133,7 @@ export default
   position: relative
   width: 100%
   z-index: 4
-  background: transparent
+  background: #E2ECDC
   transition: background .5s ease-in-out, color .5s ease-in-out
   cursor: pointer
   box-shadow: 0 0 5px rgba(100, 120, 100, .6)
