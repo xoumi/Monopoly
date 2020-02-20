@@ -22,7 +22,8 @@
           .tile-detail-amt ${{amt}}
 
 
-  .tile-owner(:style="{background: ownerCSS }")
+  .tile-owner(:style="{background: ownerCSS }") 
+    p.tile-owner-text(:style="{color: ownerCSS }") {{ data.ownedBy != null ? "OWNER" : "" }}
 
   .tile-players
     .tile-player(
@@ -32,74 +33,67 @@
     )
 </template>
 
-<script>
-import {mapState} from 'vuex';
-import gsap from 'gsap';
-import Buildings from '@/components/Buildings.vue';
+<script lang="coffee">
+import {mapState} from 'vuex'
+import gsap from 'gsap'
+import Buildings from '@/components/Buildings.vue'
 
-export default {
-  props: ['data'],
-  components: { Buildings },
-  data() { return {
-    level: ['Base','1 House', '2 Houses', '3 Houses', '4 Houses', 'Hotel'],
-    activated: false,
-    x: null,
-    y: null,
-    w: null,
+export default
+  props: ['data']
+  components: { Buildings }
+
+  data: ->
+    level: ['Base','1 House', '2 Houses', '3 Houses', '4 Houses', 'Hotel']
+    activated: false
+    x: null
+    y: null
+    w: null
     h: null
-  }},
-  computed:{
-    ownerCSS() { 
-      if ( this.data.ownedBy != null )
-        return this.players[this.data.ownedBy].color
-      else return ''
-    },
+
+  computed: {
+    ownerCSS: -> 
+      if  @data.ownedBy? then @players[@data.ownedBy].color
+      else ''
     ...mapState(['players'])
   },
-  mounted() {
-    let {x, y, width, height} = this.$refs.tile.getBoundingClientRect();
-    this.x = x; this.y = y; this.w = width; this.h = height;
-  },
-  watch: {
-    activated() {
-      let duration = .8;
-      let ease = 'power4.out';
-      let wx = window.innerWidth;
-      let wy = window.innerHeight;
-      let offsetX = 0;
-      let offsetY = 0;
-      if(this.x + 300 > wx) offsetX = this.w - 300;
-      if(this.y + 300 > wy) offsetY = this.h - 300;
 
-      if(this.activated)
-        gsap.fromTo(this.$refs.tile,
-          { x: this.x - 5, y: this.y - 5, zIndex: 2},{
-          duration, ease,
-          x: this.x - 5 + offsetX,
-          y: this.y - 5 + offsetY,
-          height: 300,
-          width: 300,
-          position: 'absolute',
-          zIndex: 2
-        })
-      else {
-        gsap.set(this.$refs.tile, {zIndex: 1});
-        gsap.to(this.$refs.tile,{
-          ease, duration,
-          x: this.x - 5, y: this.y - 5, height: this.h, width: this.w,
-          onComplete: () => {
-            gsap.set(this.$refs.tile, {
-              position: 'static',
-              transform: 'translate(0,0)',
-              zIndex: 0
-            });
+  mounted: ->
+    {x, y, width, height} = @$refs.tile.getBoundingClientRect()
+    @x = x; @y = y; @w = width; @h = height;
+
+  watch:
+    activated: ->
+      duration = .8
+      ease = 'power4.out'
+      wx = window.innerWidth
+      wy = window.innerHeight
+      offsetX = 0
+      offsetY = 0
+      if @x + 300 > wx then offsetX = @w - 300
+      if @y + 300 > wy then offsetY = @h - 300
+
+      if @activated 
+        gsap.fromTo @$refs.tile,
+          x: @x - 5, y: @y - 5, zIndex: 2
+          {
+            duration, ease,
+            x: @x - 5 + offsetX,
+            y: @y - 5 + offsetY,
+            height: 300,
+            width: 300,
+            position: 'absolute',
+            zIndex: 2
           }
-        })
-      }
-    }
-  },
-  methods: {}
-}
+      else
+        gsap.set @$refs.tile, { zIndex: 1 }
+        gsap.to @$refs.tile,
+          ease: ease, duration: duration,
+          x: @x - 5, y: @y - 5, height: @h, width: @w,
+          onComplete: () =>
+            gsap.set @$refs.tile,
+              position: 'static'
+              transform: 'translate(0,0)'
+              zIndex: 0
 </script>
 
 <style lang="sass">
@@ -165,6 +159,13 @@ export default {
     position: absolute
     bottom: 0px
     z-index: 2
+    &-text
+      position: absolute
+      right: 5px
+      bottom: 11px
+      font-weight: bold
+      font-size: .9em  
+
 
   //PLAYER INDICATOR
   &-players
