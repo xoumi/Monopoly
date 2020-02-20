@@ -11,27 +11,27 @@
       .button(@click="roll" v-if="rollBtn" key="roll") 
         h1.button-label ROLL
       .button.buy(@click="buy" v-if="buyBtn" key="buy")
-        h1.button-label BUY for ${{getRent(getCurrent.pos)}}
+        h1.button-label BUY for ${{getRent(getPos())}}
       .button.end(@click="endTurn" v-if="endBtn" key="end")
         h1.button-label END TURN
       PayBtn.button(
         key="pay" @click="pay" v-if="payBtn"
-        :from="fromCSS" :to="toCSS" :cost="getRent(getCurrent.pos)"
+        :from="fromCSS" :to="toCSS" :cost="getRent(getPos())"
       )
 
   //Players
   simplebar.players
     Player(
       v-for="player in players"
-      :key="player.id"
-      :player="player" :properties="true"
+      :key="player.color"
+      :player="player"
       )
 
   //Tiles
   Tile(
-    v-for="(i, index) in tiles"
+    v-for="i in tiles"
     :key="i.name" :data="i"
-    :style="{gridArea: `t${index}`}"
+    :style="{gridArea: `t${i.id}`}"
     )
 
   .board-bg( :class="{dim}" )
@@ -40,9 +40,10 @@
     key="auction" v-if="auctionBtn"
     @start="buyBtn = false" @dim="setDim" @over="auctionBtn = false; endBtn = true;"
     )
-    //
-      .action.button.bottom.trade(key="trade" v-if="rollBtn")
-        h1.bottom-label TRADE
+  Trade.bottom(
+    key="trade" v-if="tradeBtn"
+    @dim="setDim" @over="tradeBtn = false"
+  )
 
 </template>
 
@@ -55,18 +56,19 @@ import Player from '@/components/Player.vue';
 import Log from '@/components/Log.vue';
 import PayBtn from '@/components/PayBtn.vue';
 import Auction from '@/components/Auction.vue';
+import Trade from '@/components/Trade.vue';
 
 export default
-  components: { Tile, Player, Log, simplebar, PayBtn, Auction }
+  components: { Tile, Player, Log, simplebar, PayBtn, Auction, Trade }
 
   data: () ->
     rollBtn: true,
     buyBtn: false,
     random: null,
-    randomChangeInterval: null,
     payBtn: false,
     endBtn: false,
     auctionBtn: false,
+    tradeBtn: true,
     dim: false
 
   computed: {
@@ -74,13 +76,14 @@ export default
     ...mapGetters(['canBuy', 'getRent', 'getPos', 'getOwner', 'getCurrent']),
     rollCSS: -> background: @players[@currentPlayer].color
     fromCSS: -> background: @getCurrent.color
-    toCSS: -> background: @players[@getOwner(@getCurrent.pos)].color
+    toCSS: -> background: @players[@getOwner(getPos())].color
   }
   methods:
     setDim: (e) -> @dim = e
     endTurn: ->
       @$store.commit 'nextPlayer'
       @rollBtn = true
+      @tradeBtn = true
       @payBtn = false
       @random = null
       @endBtn = false
@@ -121,8 +124,6 @@ export default
         @payBtn = true
       else @endBtn = true
 
-    auction: ->
-      @buyBtn = false
   </script>
 
 <style lang="sass">
@@ -144,6 +145,7 @@ export default
     transition: background .5s
     pointer-events: none
     z-index: 3
+
 .dim
   background: rgba(0,0,0, .5)
   transition: background .5s
@@ -179,10 +181,6 @@ export default
   &:active
     transform: scale(1)
     transition: transform .3s, filter .5s, box-shadow .3s
-
-.trade
-  background: #F0B27A 
-
 
 .players
   background: #cae0da

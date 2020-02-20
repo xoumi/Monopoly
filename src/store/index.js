@@ -6,6 +6,7 @@ Vue.use(Vuex)
 import board from '@/assets/boardGenerator'
 import players from '@/assets/playersGenerator'
 import gsap from 'gsap'
+import { _ } from 'core-js'
 
 const categoryColors = ['#E6B0AA', '#D7BDE2', '#A9CCE3', '#A3E4D7', '#A9DFBF', '#FAD7A0', '#E59866', '#EAF0EA'];
 const playerColors = ['#EC7063', '#5DADE2', '#45B39D', '#F5B041'];
@@ -28,6 +29,11 @@ function getTime() {
 setInterval(getTime, 1000);
 
 board[0].onThisTile = [0, 1, 2, 3];
+
+players[0].ownedProps = [1, 2, 3, 4]
+players[1].ownedProps = [5, 6, 7, 8]
+players[2].ownedProps = [9, 10, 11, 12]
+players[3].ownedProps = [13, 14, 15, 16]
 
 export default new Vuex.Store({
   state: {
@@ -53,14 +59,24 @@ export default new Vuex.Store({
   },
 
   actions: {
+    tradeProps: ({ dispatch }, { player1, player2, props1, props2 } ) => {
+      console.log({player1, player2, props1, props2})
+      props1.forEach(prop => {
+        dispatch('sellProp', { player: player1, tile: prop, price: 0 })
+        dispatch('buyProp', { player: player2, tile: prop, price: 0 })
+      });
+      props2.forEach(prop => {
+        dispatch('sellProp', { player: player2, tile: prop, price: 0 })
+        dispatch('buyProp', { player: player1, tile: prop, price: 0 })
+      });
+    },
     movePlayer: ({ state, commit, getters }, { player = state.currentPlayer, from, to }) => {
       commit('removeFromTile', { player, tile: from })
       commit('addToTile', { player, tile: to })
       commit('setPos', { player, tile: to })
       commit('log', `<span style="color: ${getters.getCurrent.color}">${getters.getCurrent.name}</span> moved to <span style="background:${state.tiles[to].color};">${state.tiles[to].name}</span>`)
     },
-    buyProp: ({ state, commit, getters }, { player, tile, price = state.tiles[tile].price, auction = false }) => {
-
+    buyProp: ({ state, commit }, { player, tile, price = state.tiles[tile].price, auction = false }) => {
       commit('deductMoney', { player, money: price});
       commit('addProp', { player, tile });
       commit('setOwner', { player, tile })
@@ -68,6 +84,12 @@ export default new Vuex.Store({
         commit('log', `<span style="color: ${state.players[player].color}">${state.players[player].name}</span> won auction for <span style="background: ${state.tiles[tile].color};"> ${state.tiles[tile].name}</span>, difference ${price - state.tiles[tile].price} to original`)
       else
         commit('log', `<span style="color: ${state.players[player].color}">${state.players[player].name}</span> bought <span style="background: ${state.tiles[tile].color};"> ${state.tiles[tile].name}</span>`)
+    },
+    sellProp: ({ state, commit }, { player, tile, price = state.tiles[tile].price }) => {
+      commit('removeProp', { player, tile });
+      commit('setOwner', { player: null, tile })
+      commit('addMoney', {player, money: price})
+      commit('log', `<span style="color: ${state.players[player].color}">${state.players[player].name}</span> sold <span style="background: ${state.tiles[tile].color};"> ${state.tiles[tile].name}</span>`)
     },
     pay: ({ state, commit, getters }, { from, to, amt }) => {
       from = from == null ? state.currentPlayer : from;
