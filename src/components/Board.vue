@@ -19,6 +19,13 @@
         :from="fromCSS" :to="toCSS" :cost="getRent(getPos())"
       )
 
+  .bottom.action.action-secondary
+    transition(name="pop2" mode="out-in")
+      .button(key="trade" v-if="tradeBtn" @click="isTrading = true")
+        h1.button-label TRADE
+      .button(key="auction" v-if="auctionBtn" @click="isAuctioning = true")
+        h1.button-label AUCTIONING
+
   //Players
   simplebar.players
     Player(
@@ -34,16 +41,8 @@
     :style="{gridArea: `t${i.id}`}"
     )
 
-  .board-bg( :class="{dim}" )
-
-  Auction.bottom(
-    key="auction" v-if="auctionBtn"
-    @start="buyBtn = false" @dim="setDim" @over="auctionBtn = false; endBtn = true;"
-    )
-  Trade.bottom(
-    key="trade" v-if="tradeBtn"
-    @dim="setDim" @over="tradeBtn = false"
-  )
+  Auction( v-if="isAuctioning" @start="buyBtn = false" @over="auctionBtn = false; endBtn = true;" )
+  Trade( v-if="isTrading" @over="tradeBtn = false" )
 
 </template>
 
@@ -69,7 +68,8 @@ export default
     endBtn: false,
     auctionBtn: false,
     tradeBtn: true,
-    dim: false
+    isAuctioning: false,
+    isTrading: false
 
   computed: {
     ...mapState(['tiles', 'players', 'currentPlayer']),
@@ -114,6 +114,7 @@ export default
         from: pos
         to: newPos
       @rollBtn = false
+      @tradeBtn = false
       @action()
 
     action: ->
@@ -146,10 +147,6 @@ export default
     pointer-events: none
     z-index: 3
 
-.dim
-  background: rgba(0,0,0, .5)
-  transition: background .5s
-
 .button
   font-weight: 700
   font-family: 'Barlow'
@@ -173,6 +170,8 @@ export default
   cursor: pointer
   box-shadow: 0 0 5px rgba(100, 120, 100, .6)
   border-radius: 15px
+  &-secondary
+    background: tomato
   &:hover
     box-shadow: 0 2px 10px rgba(100, 120, 100, .4)
     filter: brightness(1.1)

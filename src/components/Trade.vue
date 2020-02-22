@@ -1,8 +1,8 @@
 <template lang="pug">
-.trade(ref="container" @click="expand")
-  h1.auction-title TRADE
-  button.button.action(@click="confirmTrade") CONFIRM
-  .trade-players(v-if="isTrading")
+.trade(ref="container")
+  .trade-bg.dim
+  .trade-label TRADE WITH ?
+  .trade-players
     Player.trade-player(
       v-for="player in players"
       ref="player"
@@ -68,26 +68,47 @@ export default
         props2: @p2Trading
 
   mounted: ->
-    @container = tradeAnim.setContainer @$refs, 800, 600
+    tradeAnim.show @$refs.player
 </script>
 
 <style lang="sass">
 .trade
-  border-radius: 15px
-  display: flex
-  flex-direction: column
-  position: relative
-  width: 100%
+  position: absolute
+  top: 0
+  left: 0
+  width: 100vw
+  height: 100vh
   z-index: 4
-  background: #E2ECDC
   transition: background .5s ease-in-out, color .5s ease-in-out
   box-shadow: 0 0 5px rgba(100, 120, 100, .6)
+  display: flex
+  flex-direction: column
+  justify-content: center
+  &-label
+    font-weight: bold
+    color: white
+    font-size: 4em
+    position: absolute
+    top: 10%
+    left: 50%
+    transform: translateX(-50%)
+  &-bg
+    position: fixed
+    top: 0
+    left: 0
+    width: 100%
+    height: 100%
+    transition: background .5s
+    z-index: -1
   &-players
-    padding: 20px
+    padding: 100px
     position: relative
     display: flex
 .select
   transition: all .2s
   &:hover
-    transform: scale(1.05)
+    transform: scale(1.15)
+
+.dim
+  background: rgba(0,0,0, .5)
 </style>
