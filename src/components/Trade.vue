@@ -1,7 +1,7 @@
 <template lang="pug">
 .trade(ref="container")
   .trade-bg.dim
-  .trade-label TRADE WITH ?
+  .trade-confirm(@click="confirmTrade") CONFIRM
   .trade-players
     Player.trade-player(
       v-for="player in players"
@@ -10,7 +10,7 @@
       :class="{'select': isSelectingTrader }"
       :player="player"
       :allowSelect="isSelectingProperties"
-      @selected="tradeProps"
+      :selected="tradeProps[player.id]"
       @click.native.stop="tradeWith(player.id)"
     )
 </template>
@@ -38,6 +38,7 @@ export default
     isSelectingTrader: false
     isSelectingProperties: false
     tradeAnim: tradeAnim
+    tradeProps: [[], [], [], []]
 
   methods:
     expand: ->
@@ -55,19 +56,16 @@ export default
           @isSelectingProperties = true
           tradeAnim.movePlayersForTrade @$refs, @currentPlayer, id
 
-    tradeProps: ( propIds, id ) ->
-      if id is @currentPlayer
-        @p1Trading = propIds
-      else @p2Trading = propIds
-
     confirmTrade: ->
       @$store.dispatch 'tradeProps',
         player1: @currentPlayer
         player2: @tradingWith
-        props1: @p1Trading
-        props2: @p2Trading
+        props1: @tradeProps[@currentPlayer]
+        props2: @tradeProps[@tradingWith]
+      @$emit 'completed'
 
   mounted: ->
+    console.log 'mounted'
     tradeAnim.show @$refs.player
 </script>
 

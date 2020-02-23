@@ -24,9 +24,8 @@
 import { mapState, mapGetters } from 'vuex'
 
 export default
-  data: ->
-    selected: []
-  props: ['player', 'allowSelect']
+  props: ['player', 'allowSelect', 'selected']
+  components: { Money }
   computed: {
     ...mapState(['tiles']),
     ...mapGetters(['getRent'])
@@ -40,10 +39,6 @@ export default
           @selected.push prop
         else
           @selected.splice @selected.indexOf(prop), 1
-      @$emit 'selected', @selected, @player.id
-
-
-
 </script>
 
 <style lang="sass">
@@ -55,6 +50,7 @@ export default
   text-align: left
   box-shadow: 0px 2px 5px 0px rgba(0,50,0,0.15)
   width: 100%
+  height: min-content
 
   &-head
     display: flex
