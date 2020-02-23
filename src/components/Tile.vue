@@ -7,7 +7,7 @@
 )
   .tile-head( :style="{background: data.color}")
     h3.tile-title {{ data.name }}  
-    h2.tile-rent {{ data.ownedBy == null ? data.price : data.rent[data.houses] }}
+    Money.tile-rent(:money="data.ownedBy == null ? data.price : data.rent[data.houses]")
   
   .tile-details-wrapper
     transition(name="slide")
@@ -19,7 +19,7 @@
           @click="setHouses(index)"
         )
           .tile-detail-level {{level[index]}}:
-          .tile-detail-amt ${{amt}}
+          Money.tile-detail-amt(:money="amt")
 
 
   .tile-owner(:style="{background: ownerCSS }") 
@@ -37,10 +37,11 @@
 import {mapState} from 'vuex'
 import gsap from 'gsap'
 import Buildings from '@/components/Buildings.vue'
+import Money from '@/components/Number.vue'
 
 export default
   props: ['data']
-  components: { Buildings }
+  components: { Buildings, Money }
 
   data: ->
     level: ['Base','1 House', '2 Houses', '3 Houses', '4 Houses', 'Hotel']

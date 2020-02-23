@@ -42,7 +42,7 @@
     )
 
   Auction( v-if="isAuctioning" @start="buyBtn = false" @over="auctionBtn = false; endBtn = true;" )
-  Trade( v-if="isTrading" @over="tradeBtn = false" )
+  Trade( v-if="isTrading" @completed="isTrading = false" )
 
 </template>
 

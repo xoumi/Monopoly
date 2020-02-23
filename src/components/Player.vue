@@ -2,7 +2,7 @@
 .player
   .player-head(:style="{backgroundColor: player.color}")
     .player-name {{player.name}}
-    .player-money ${{player.money}}
+    Money.player-money(:money="player.money")
   transition-group.player-properties(name="slide" tag="div")
     .player-property(
       v-for="prop in player.ownedProps"
@@ -16,12 +16,13 @@
         :style="selectCSS(prop)"
       )
       .player-property-name {{ tiles[prop].name }}
-      .player-property-rent {{ getRent(prop) }}
+      Money.player-property-rent(:money="getRent(prop)")
 
 </template>
 
 <script lang="coffee">
 import { mapState, mapGetters } from 'vuex'
+import Money from '@/components/Number.vue';
 
 export default
   props: ['player', 'allowSelect', 'selected']
