@@ -31,10 +31,6 @@ setInterval getTime, 1000
 
 # Temporary Setup for testing
 board[0].onThisTile = [0, 1, 2, 3]
-players[0].ownedProps = [1, 2, 3, 4]
-players[1].ownedProps = [5, 6, 7, 8]
-players[2].ownedProps = [9, 10, 11, 12]
-players[3].ownedProps = [13, 14, 15, 16]
 
 export default new Vuex.Store
   state:
@@ -71,12 +67,14 @@ export default new Vuex.Store
 
   actions:
     tradeProps: ({ dispatch }, { player1, player2, props1, props2 } ) =>
-      props1.forEach prop =>
-        dispatch 'sellProp', { player: player1, tile: prop, price: 0 }
-        dispatch 'buyProp', { player: player2, tile: prop, price: 0 }
-      props2.forEach prop =>
-        dispatch 'sellProp', { player: player2, tile: prop, price: 0 }
-        dispatch 'buyProp', { player: player1, tile: prop, price: 0 }
+      if props1?
+        props1.forEach (prop) =>
+          dispatch 'sellProp', { player: player1, tile: prop, price: 0 }
+          dispatch 'buyProp', { player: player2, tile: prop, price: 0 }
+      if props2?
+        props2.forEach (prop) =>
+          dispatch 'sellProp', { player: player2, tile: prop, price: 0 }
+          dispatch 'buyProp', { player: player1, tile: prop, price: 0 }
 
     movePlayer: ({ state, commit, getters },
     { player = state.currentPlayer, from, to }) =>
@@ -127,20 +125,10 @@ export default new Vuex.Store
         else state.currentPlayer + 1
 
     deductMoney: (state, { player, money }) =>
-      player = state.players[player]
-      gsap.to player,
-        duration: 2
-        ease: 'power3.out'
-        money: player.money - money
-        onUpdate: => player.money = Math.round player.money
+      state.players[player].money -= money
 
     addMoney: (state, { player, money }) =>
-      player = state.players[player]
-      gsap.to player,
-        duration: 2
-        ease: 'power3.out'
-        money: player.money + money
-        onUpdate: () => player.money = Math.round(player.money)
+      state.players[player].money += money
 
     addProp: (state, { player, tile }) =>
       state.players[player].ownedProps.push tile
