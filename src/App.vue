@@ -28,14 +28,14 @@ export default
   overflow: hidden
 
 .pop-enter-active
-  transition: transform .5s cubic-bezier(.75, 0,.25,1.25) .2s, opacity .5s ease-in-out
+  transition: all .5s cubic-bezier(.75, 0,.25,1.25) .2s
 .pop-leave-active
-  transition: transform .5s cubic-bezier(1,-0.50,.83,1.01), opacity .5s ease-in-out
+  transition: all .5s cubic-bezier(1,-0.50,.83,1.01)
 .pop-enter 
-  transform: scale(0)
+  transform: scale(.8)
   opacity: 0
 .pop-leave-to
-  transform: scale(0)
+  transform: scale(.8)
   opacity: 0
 
 .pop2-enter-active
@@ -52,4 +52,15 @@ export default
   transition: transform .5s cubic-bezier(1,-0.2,.8,1)
 .slide-enter, .slide-leave-to
   transform: translateX(-100%)
+
+.slidefade-enter-active
+  transition: all .5s ease-in-out
+.slidefade-leave-active
+  transition: all .5s ease-in-out
+.slidefade-enter
+  transform: translateX(-50px)
+  opacity: 0
+.slidefade-leave-to
+  transform: translateX(50px)
+  opacity: 0
 </style>

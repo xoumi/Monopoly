@@ -1,8 +1,8 @@
 <template lang="pug">
-.button.pay(@click="$emit('click')")
+.pay
   .pay-from(:style="from")
   .pay-text
-    .pay-bg TRANSFERRING
+    .pay-bg PAYING
     .button-label.pay-cost ${{cost}}
   .pay-to(:style="to") 
 </template>
@@ -16,20 +16,14 @@ export default {
 <style lang="sass">
 .pay
   display: flex
-  align-items: center
+  position: relative
+  background: rgba(0,0,0, .5)
   &-from, &-to
-    height: calc(100% - 20px)
-    margin: 10px
-    width: 90px
-    background: white
-    border: 2px dashed white
-  &-from
-    border-radius: 15px 0 0 15px
-  &-to
-    border-radius: 0 15px 15px 0
+    height: 100%
+    width: 100%
   &-text
     overflow: hidden
-    position: relative
+    position: absolute
     width: 100%
     height: 100%
     display: flex
@@ -37,9 +31,31 @@ export default {
     justify-content: center
   &-bg
     font-weight: bold
-    font-size: 1.5em
-    color: rgba(0,0,0, .3)
+    font-size: .7em
+    color: rgba(0,0,0, .2)
   &-cost
     position: absolute
     animation: fade-slide 1.5s  ease-in-out infinite 
+    transform: translate(-50%)
+</style>
+
+<style lang="scss">
+@keyframes fade-slide {
+  0% {
+    opacity: 0;
+    transform: translateX(-100%)
+  }
+  45% {
+    opacity: 1;
+    transform: translateX(-10px)
+  }
+  55% {
+    opacity: 1;
+    transform: translateX(-10px)
+  }
+  100% {
+    opacity: 0;
+    transform: translateX(100%)
+  }
+}
 </style>
