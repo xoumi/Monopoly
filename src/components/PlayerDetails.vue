@@ -50,8 +50,8 @@ export default
   border-radius: 7px
   text-align: left
   box-shadow: 0px 2px 5px 0px rgba(0,50,0,0.15)
-  width: 100%
   height: min-content
+  flex-grow: 1
 
   &-head
     display: flex
