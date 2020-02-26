@@ -31,19 +31,8 @@ export default
   transition: all .5s cubic-bezier(.75, 0,.25,1.25) .2s
 .pop-leave-active
   transition: all .5s cubic-bezier(1,-0.50,.83,1.01)
-.pop-enter 
+.pop-enter , .pop-leave-to
   transform: scale(.8)
-  opacity: 0
-.pop-leave-to
-  transform: scale(.8)
-  opacity: 0
-
-.pop2-enter-active
-  transition: transform .5s cubic-bezier(.75, 0,.25,1), opacity .5s linear
-.pop2-leave-active
-  transition: transform .5s cubic-bezier(.75, 0,.25,1), opacity .5s linear
-.pop2-enter, .pop2-leave-to
-  transform: scale(.5)
   opacity: 0
 
 .slide-enter-active

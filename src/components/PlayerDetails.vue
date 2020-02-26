@@ -52,6 +52,7 @@ export default
   box-shadow: 0px 2px 5px 0px rgba(0,50,0,0.15)
   height: min-content
   flex-grow: 1
+  overflow: hidden
 
   &-head
     display: flex

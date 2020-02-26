@@ -185,6 +185,7 @@ export default
     transform: scale(1.05)
   &:active
     transform: scale(1)
+    transition: transform .1s, filter .5s, box-shadow .3s, background 1s
 
 .center
   grid-area: c
