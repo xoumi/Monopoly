@@ -76,7 +76,8 @@ function generator() {
       rent: rent[i],
       mortage: mortgage[i],
       isMortgaged: false,
-      onThisTile: []
+      onThisTile: [],
+      canUpgrade: false
     }) 
   }
   return data;

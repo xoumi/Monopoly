@@ -2,8 +2,10 @@
 .tile(
   @mouseover="activated = true"
   @mouseleave="activated = false"
+  @click="upgradeTile"
   ref="tile"
   :style="{border: `solid 3px ${data.color}`}"
+  :class="{upgrade: data.canUpgrade}"
 )
   .tile-head( :style="{background: data.color}")
     h3.tile-title {{ data.name }}  
@@ -16,11 +18,11 @@
           v-for="(amt, index) in data.rent"
           :key="index"
           :class="{'tile-detail-active': data.houses == index}"
-          @click="setHouses(index)"
         )
           .tile-detail-level {{level[index]}}:
           Money.tile-detail-amt(:money="amt")
 
+  .tile-upgrade(v-if="data.canUpgrade" :style="{color: ownerCSS}") UPGRADE!
 
   .tile-owner(:style="{background: ownerCSS }") 
     p.tile-owner-text(:style="{color: ownerCSS }") {{ data.ownedBy != null ? "OWNER" : "" }}
@@ -34,7 +36,7 @@
 </template>
 
 <script lang="coffee">
-import {mapState} from 'vuex'
+import {mapState, mapGetters} from 'vuex'
 import gsap from 'gsap'
 import Buildings from '@/components/Buildings.vue'
 import Money from '@/components/Number.vue'
@@ -55,14 +57,26 @@ export default
     ownerCSS: -> 
       if  @data.ownedBy? then @players[@data.ownedBy].color
       else ''
-    ...mapState(['players'])
+    ...mapState(['players', 'currentPlayer', 'tiles']),
+    ...mapGetters(['getGroup', 'canUpgrade'])
   },
 
   mounted: ->
     {x, y, width, height} = @$refs.tile.getBoundingClientRect()
     @x = x; @y = y; @w = width; @h = height;
 
+  methods:
+    upgradeTile: ->
+      if @data.canUpgrade
+        @$store.dispatch 'upgradeTile', { tile: @data.id }
+        group = @getGroup @data.id
+        group.group.forEach (tile) =>
+          @tiles[tile].canUpgrade = @canUpgrade tile
+
   watch:
+    currentPlayer: (n, o) ->
+      @data.canUpgrade =  @canUpgrade @data.id
+
     activated: ->
       duration = .8
       ease = 'power4.out'
@@ -163,9 +177,15 @@ export default
     &-text
       position: absolute
       right: 5px
-      bottom: 11px
+      bottom: 10px
       font-weight: bold
       font-size: .9em  
+  &-upgrade
+    position: absolute
+    right: 5px
+    top: 41px
+    font-weight: bold
+    font-size: .9em  
 
 
   //PLAYER INDICATOR
@@ -183,5 +203,4 @@ export default
     border: 2px solid white
     margin: 5px
     box-shadow: 0 1px 2px rgba(0,0,0, .2)
-
 </style>

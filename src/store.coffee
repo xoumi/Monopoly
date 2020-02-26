@@ -12,6 +12,17 @@ categoryColors = [
   '#A9DFBF', '#FAD7A0', '#E59866', '#EAF0EA'
 ]
 
+propGroups = [
+  [1, 2, 3],
+  [4, 5, 6],
+  [8, 9, 10, 11],
+  [13, 14, 15],
+  [16, 17, 18],
+  [20, 21],
+  [22, 23],
+  [0, 7, 12, 19]
+]
+
 playerColors = ['#EC7063', '#5DADE2', '#45B39D', '#F5B041']
 board.forEach (e) => e.color = categoryColors[e.color]
 players.forEach (e) => e.color = playerColors[e.color]
@@ -31,6 +42,9 @@ setInterval getTime, 1000
 
 # Temporary Setup for testing
 board[0].onThisTile = [0, 1, 2, 3]
+players[0].ownedProps = [1, 2]
+board[1].ownedBy = 0
+board[2].ownedBy = 0
 
 export default new Vuex.Store
   state:
@@ -51,8 +65,29 @@ export default new Vuex.Store
         state.players[player].money > location.price
         then true else false
 
+    canUpgrade: (state, getters) =>
+      (tile) =>
+        group = getters.getGroup tile
+        current = state.tiles[tile]
+        if getters.getCurrent.ownedGroups.includes group.id
+          return group.group.every (groupTile) =>
+            difference =
+              state.tiles[groupTile].houses - current.houses
+            if difference in [0, 1]
+              state.players[state.currentPlayer].money >
+              current.rent[current.houses]
+        else
+          return false
+
     getPos: (state) =>
       (i = state.currentPlayer) => state.players[i].pos
+
+    getGroup: (state) =>
+      (tile) =>
+        result = 0
+        propGroups.forEach (g, i) =>
+          if g.includes tile then result = i
+        return { group: propGroups[result], id: result }
 
     getCurrent: (state) =>
       state.players[state.currentPlayer]
@@ -100,14 +135,19 @@ export default new Vuex.Store
       commit 'addMoney', {player, money: price}
       commit 'log', """<span style="color: #{state.players[player].color}">#{state.players[player].name}</span> sold <span style="background: #{state.tiles[tile].color};"> #{state.tiles[tile].name}</span>"""
 
-    pay: ({ state, commit, getters }, { from, to, amt }) =>
-      from = if from == null then state.currentPlayer else from
-      to = if to == null then getters.getOwner getters.getPos() else to
-      amt = if amt == null then getters.getRent getters.getPos() else amt
-      commit 'deductMoney', { player: from, money: amt }
-      commit 'addMoney', { player: to, money: amt }
-      commit 'log', """<span style="color: #{getters.getCurrent.color}">#{state.players[from].name}</span> paid <b>$#{amt}</b> to <span style="color: #{state.players[to].color}">#{state.players[to].name}</span>"""
+    pay: ({ state, commit, getters }, {
+      from = state.currentPlayer,
+      to = getters.getOwner getters.getPos(),
+      amt = getters.getRent getters.getPos() }) =>
+        commit 'deductMoney', { player: from, money: amt }
+        commit 'addMoney', { player: to, money: amt }
+        commit 'log', """<span style="color: #{getters.getCurrent.color}">#{state.players[from].name}</span> paid <b>$#{amt}</b> to <span style="color: #{state.players[to].color}">#{state.players[to].name}</span>"""
 
+    upgradeTile: ({state, commit}, {
+      player = state.currentPlayer, tile }) =>
+        money = (state.tiles[tile].houses + 1) * 75
+        commit 'deductMoney', {player, money }
+        commit 'addHouse', { tile }
   mutations:
     removeFromTile: (state, { player, tile }) =>
       state.tiles[tile].onThisTile
@@ -132,6 +172,21 @@ export default new Vuex.Store
 
     addProp: (state, { player, tile }) =>
       state.players[player].ownedProps.push tile
+      state.tiles[tile].houses = 0
+      tempGroup = null
+      propGroups.forEach (g, i) =>
+        if g.includes tile then tempGroup = i
+
+      superSet = state.players[player].ownedProps
+      subSet = propGroups[tempGroup]
+
+      unless superSet.length < subSet.length
+        ownsGroup = state.players[player].ownedProps.every (val) =>
+          propGroups[tempGroup].indexOf(val) >= 0
+      else ownsGroup = false
+
+      if ownsGroup
+        state.players[player].ownedGroups.push(tempGroup)
 
     removeProp: (state, { player, tile }) =>
       state.players[player].ownedProps
@@ -139,6 +194,9 @@ export default new Vuex.Store
     
     setOwner: (state, {player, tile}) =>
       state.tiles[tile].ownedBy = player
+
+    addHouse: (state, { tile }) =>
+      state.tiles[tile].houses += 1
 
     log: (state, msg) =>
       state.logs.push { time, msg }
