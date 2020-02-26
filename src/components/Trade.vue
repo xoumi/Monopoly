@@ -1,23 +1,31 @@
 <template lang="pug">
-.trade(ref="container")
-  .trade-bg.dim
-  .trade-confirm(@click="confirmTrade") CONFIRM
-  .trade-players
-    Player.trade-player(
-      v-for="player in players"
-      ref="player"
-      :key="player.id"
-      :class="{'select': isSelectingTrader }"
-      :player="player"
-      :allowSelect="isSelectingProperties"
-      :selected="tradeProps[player.id]"
-      @click.native.stop="tradeWith(player.id)"
-    )
+transition(@appear="appear" @leave="leave")
+  .trade(ref="container")
+    .trade-bg(ref="bg")
+    .trade-players
+      .trade-player-controls(
+          v-for="(player, i) in players"
+          :key="player.id"
+          ref="player"
+      )
+        Player.trade-player(
+          :class="{'select': state == 'selectingTrader' && i != 0 }"
+          :player="player"
+          :allowSelect="state == 'selectingProperty'"
+          :selected="tradeProps[player.id]"
+          @click.native.stop="tradeWith(player.id, i)"
+          style="margin: 0 30px"
+        )
+
+    .button.trade-action(ref="action" :style="{background: actionCSS}")
+      transition(name="slidefade" mode="out-in")
+        .action(key="confirm" v-if="state == 'selectingProperty'" @click="confirmTrade") CONFIRM
+        .action(key="cancel" v-else @click="closeTrade") {{ btnText }}
 </template>
 
 <script lang="coffee">
 import {mapState, mapGetters} from 'vuex'
-import Player from '@/components/Player.vue';
+import Player from '@/components/PlayerDetails.vue';
 import tradeAnim from '@/assets/animations/trade.coffee';
 
 export default
@@ -26,17 +34,24 @@ export default
     ...mapState(['currentPlayer']),
     ...mapGetters(['getCurrent']),
     players: ->
-      players = @$store.state.players
+      players = [...@$store.state.players]
       temp = players[@currentPlayer]
       players[@currentPlayer] = players[0]
       players[0] = temp
       players
+    btnText: ->
+      if @state != 'complete' then "CANCEL" else "DONE" 
+    actionCSS: ->
+      color = ''
+      if @state is 'selectingProperty' then color = 'skyblue'
+      else if @state is 'selectingTrader' then color = 'lightcoral'
+      if @state is 'complete' then color = 'mediumaquamarine'
+      color
   }
   data: ->
-    isTrading: false 
     tradingWith: null
-    isSelectingTrader: false
-    isSelectingProperties: false
+    state: 'selectingTrader'
+    tradeComplete: false
     tradeAnim: tradeAnim
     tradeProps: [[], [], [], []]
 
@@ -48,13 +63,21 @@ export default
         @$nextTick ->
           @container.show => @isSelectingTrader = true
 
-    tradeWith: (id) ->
+    tradeWith: (id, i) ->
       if @tradingWith is null
         unless id is @currentPlayer
           @tradingWith = id
-          @isSelectingTrader = false
-          @isSelectingProperties = true
-          tradeAnim.movePlayersForTrade @$refs, @currentPlayer, id
+          @state = 'selectingProperty'
+          @movePlayersForTrade i
+
+    movePlayersForTrade: (i) ->
+      players = @$refs.player
+      move = null; hide = []
+
+      players.forEach (player, index) =>
+        if index is i then move = player
+        else if index not in [0, i] then hide.push player
+      tradeAnim.movePlayersForTrade @$refs, hide, move
 
     confirmTrade: ->
       @$store.dispatch 'tradeProps',
@@ -62,11 +85,15 @@ export default
         player2: @tradingWith
         props1: @tradeProps[@currentPlayer]
         props2: @tradeProps[@tradingWith]
+      @state = 'complete'
+
+    closeTrade: ->
       @$emit 'completed'
 
-  mounted: ->
-    console.log 'mounted'
-    tradeAnim.show @$refs.player
+    appear: ->
+      tradeAnim.appear @$refs
+    leave: (el, done) ->
+      tradeAnim.leave @$refs, done
 </script>
 
 <style lang="sass">
@@ -77,11 +104,12 @@ export default
   width: 100vw
   height: 100vh
   z-index: 4
+  background: transparent
   transition: background .5s ease-in-out, color .5s ease-in-out
   box-shadow: 0 0 5px rgba(100, 120, 100, .6)
   display: flex
-  flex-direction: column
   justify-content: center
+  align-items: center
   &-label
     font-weight: bold
     color: white
@@ -97,16 +125,27 @@ export default
     width: 100%
     height: 100%
     transition: background .5s
+    background: #000
     z-index: -1
+    opacity: .5
   &-players
     padding: 100px
+    width: 100vw
     position: relative
-    display: flex
+    display: grid
+    grid-template-columns: 1fr 1fr 1fr 1fr
+  &-action
+    height: auto !important
+    position: absolute
+    bottom: 15%
+    
 .select
   transition: all .2s
   &:hover
-    transform: scale(1.15)
+    transform: scale(1.05)
 
-.dim
-  background: rgba(0,0,0, .5)
+.trade .button
+  transition: filter .5s, box-shadow .3s, background 1s
+.trade .action
+  padding: 20px 0
 </style>
